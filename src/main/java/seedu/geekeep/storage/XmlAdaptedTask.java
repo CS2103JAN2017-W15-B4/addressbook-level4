@@ -31,8 +31,6 @@ public class XmlAdaptedTask {
     private List<XmlAdaptedTag> tagged = new ArrayList<>();
     @XmlElement
     private String isDone;
-    @XmlElement
-    private String id;
 
     /**
      * Constructs an XmlAdaptedTask.
@@ -56,7 +54,6 @@ public class XmlAdaptedTask {
             tagged.add(new XmlAdaptedTag(tag));
         }
         isDone = source.isDone() ? "True" : "False";
-        id = String.valueOf(source.getId());
     }
 
     /**
@@ -75,8 +72,6 @@ public class XmlAdaptedTask {
         final Location location = this.location.isEmpty() ? null : new Location(this.location);
         final UniqueTagList tags = new UniqueTagList(taskTags);
         final boolean isDone = this.isDone.equals("True");
-        Task task = new Task(title, startDateTime, endDateTime, location, tags, isDone);
-        task.setId(Integer.parseInt(id));
-        return task;
+        return new Task(title, startDateTime, endDateTime, location, tags, isDone);
     }
 }
