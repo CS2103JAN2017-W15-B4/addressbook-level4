@@ -3,19 +3,25 @@ package seedu.geekeep.model;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 
 import javafx.collections.ObservableList;
 import seedu.geekeep.commons.core.UnmodifiableObservableList;
+import seedu.geekeep.commons.exceptions.IllegalValueException;
+import seedu.geekeep.logic.commands.exceptions.CommandException;
 import seedu.geekeep.model.tag.Tag;
 import seedu.geekeep.model.tag.UniqueTagList;
 import seedu.geekeep.model.task.ReadOnlyTask;
 import seedu.geekeep.model.task.Task;
 import seedu.geekeep.model.task.UniqueTaskList;
 import seedu.geekeep.model.task.UniqueTaskList.DuplicateTaskException;
+import seedu.geekeep.model.task.UniqueTaskList.TaskNotFoundException;
+import seedu.geekeep.model.util.IndexKeeper;
 
 /**
  * Wraps all data at the address-book level Duplicates are not allowed (by .equals comparison)
@@ -48,6 +54,22 @@ public class TaskManager implements ReadOnlyTaskManager {
         resetData(toBeCopied);
     }
 
+    /** generate a random 4-digit TaskId */
+    public int getNextId() {
+        Random numberGenerator = new Random();
+        int id = numberGenerator.nextInt(9999);
+
+        Iterator<Task> ir = tasks.iterator();
+        while (ir.hasNext()) {
+            Task task = ir.next();
+            if (task.getId() == id) {
+                return getNextId();
+            }
+        }
+        IndexKeeper.addNewId(id);
+        return id;
+    }
+
     //// list overwrite operations
 
     /**
@@ -59,11 +81,25 @@ public class TaskManager implements ReadOnlyTaskManager {
      */
     public void addTask(Task p) throws UniqueTaskList.DuplicateTaskException {
         syncMasterTagListWith(p);
+        p.setId(getNextId());
         tasks.add(p);
     }
 
     public void addTag(Tag t) throws UniqueTagList.DuplicateTagException {
         tags.add(t);
+    }
+
+
+    public ReadOnlyTask getTaskById(int id) throws TaskNotFoundException {
+        Iterator<Task> ir = tasks.iterator();
+        while (ir.hasNext()) {
+            Task task = ir.next();
+            if (task.getId() == id) {
+                return task;
+            }
+        }
+
+        throw new TaskNotFoundException();
     }
 
     @Override
@@ -96,6 +132,8 @@ public class TaskManager implements ReadOnlyTaskManager {
 
     public boolean removeTask(ReadOnlyTask key) throws UniqueTaskList.TaskNotFoundException {
         if (tasks.remove(key)) {
+            boolean successRemoval = IndexKeeper.removeExistedId(key.getId());
+            assert successRemoval == true;
             return true;
         } else {
             throw new UniqueTaskList.TaskNotFoundException();
@@ -104,12 +142,18 @@ public class TaskManager implements ReadOnlyTaskManager {
 
     public void resetData(ReadOnlyTaskManager newData) {
         assert newData != null;
+        if (newData.getTaskList().isEmpty()) {
+            IndexKeeper.resetIds();
+        }
         try {
 
             setTasks(newData.getTaskList());
 
         } catch (UniqueTaskList.DuplicateTaskException e) {
             assert false : "TaskManager should not have duplicate tasks";
+        } catch (IllegalValueException ive) {
+            assert false : "TaskManager tasks startDateTime should be matched"
+                    + "with a later endDateTime";
         }
         try {
             setTags(newData.getTagList());
@@ -121,7 +165,15 @@ public class TaskManager implements ReadOnlyTaskManager {
 
     //// tag-level operations
 
-    public void setTasks(List<? extends ReadOnlyTask> tasks) throws UniqueTaskList.DuplicateTaskException {
+    public void setTasks(List<? extends ReadOnlyTask> tasks)
+            throws UniqueTaskList.DuplicateTaskException, IllegalValueException {
+        Task task;
+        for (final ReadOnlyTask readOnlyTask : tasks) {
+            task = (Task) readOnlyTask;
+            if (task.getId() == -1) {
+                task.setId(getNextId());
+            }
+        }
         this.tasks.setTasks(tasks);
     }
 
@@ -175,14 +227,22 @@ public class TaskManager implements ReadOnlyTaskManager {
      * @throws DuplicateTaskException
      *             if updating the task's details causes the task to be equivalent to another existing task in the
      *             list.
+     * @throws TaskNotFoundException
+     * @throws CommandException
      * @throws IndexOutOfBoundsException
      *             if {@code index} < 0 or >= the size of the list.
      */
     public void updateTask(int index, ReadOnlyTask editedReadOnlyTask)
-            throws UniqueTaskList.DuplicateTaskException {
+            throws UniqueTaskList.DuplicateTaskException, IllegalValueException,
+            TaskNotFoundException {
         assert editedReadOnlyTask != null;
 
-        Task editedTask = new Task(editedReadOnlyTask);
+        Task editedTask;
+        try {
+            editedTask = new Task(editedReadOnlyTask);
+        } catch (IllegalValueException ive) {
+            throw new IllegalValueException(ive.getMessage());
+        }
         syncMasterTagListWith(editedTask);
         // TODO: the tags master list will be updated even though the below line fails.
         // This can cause the tags master list to have additional tags that are not tagged to any task
@@ -191,10 +251,22 @@ public class TaskManager implements ReadOnlyTaskManager {
     }
 
     public void markTaskDone(int index) {
-        tasks.markTaskDone(index);
+        try {
+            Task task = (Task) getTaskById(index);
+            task.markDone();
+        } catch (TaskNotFoundException e) {
+
+        }
+
+
     }
 
     public void markTaskUndone(int index) {
-        tasks.markTaskUndone(index);
+        try {
+            Task task = (Task) getTaskById(index);
+            task.markUndone();
+        } catch (TaskNotFoundException e) {
+
+        }
     }
 }

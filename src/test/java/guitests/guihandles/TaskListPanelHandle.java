@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import seedu.geekeep.TestApp;
+import seedu.geekeep.commons.exceptions.IllegalValueException;
 import seedu.geekeep.model.task.ReadOnlyTask;
 import seedu.geekeep.model.task.Task;
 import seedu.geekeep.testutil.TestUtil;
@@ -79,7 +80,7 @@ public class TaskListPanelHandle extends GuiHandle {
         return getListView().getItems().get(index);
     }
 
-    public PersonCardHandle getPersonCardHandle(int index) {
+    public PersonCardHandle getPersonCardHandle(int index) throws IllegalValueException {
         return getPersonCardHandle(new Task(getListView().getItems().get(index)));
     }
 
@@ -115,33 +116,40 @@ public class TaskListPanelHandle extends GuiHandle {
     }
 
     /**
-     * Returns true if the list is showing the person details correctly and in correct order.
+     * Returns true if the list is showing the task details correctly and in correct order.
      * @param startPosition The starting position of the sub list.
-     * @param persons A list of person in the correct order.
+     * @param tasks A list of tasks in the correct order.
+     * @throws IllegalValueException
      */
-    public boolean isListMatching(int startPosition, ReadOnlyTask... persons) throws IllegalArgumentException {
-        if (persons.length + startPosition != getListView().getItems().size()) {
+    public boolean isListMatching(int startPosition, ReadOnlyTask... tasks)
+            throws IllegalArgumentException {
+        if (tasks.length + startPosition != getListView().getItems().size()) {
             throw new IllegalArgumentException("List size mismatched\n" +
-                    "Expected " + (getListView().getItems().size() - 1) + " persons");
+                    "Expected " + (getListView().getItems().size() - 1) + " persons" +
+                    " Received: " + tasks.length);
         }
-        assertTrue(this.containsInOrder(startPosition, persons));
-        for (int i = 0; i < persons.length; i++) {
+        assertTrue(this.containsInOrder(startPosition, tasks));
+        for (int i = 0; i < tasks.length; i++) {
             final int scrollTo = i + startPosition;
             guiRobot.interact(() -> getListView().scrollTo(scrollTo));
             guiRobot.sleep(200);
-            if (!TestUtil.compareCardAndPerson(getPersonCardHandle(startPosition + i), persons[i])) {
-                return false;
+            try {
+                if (!TestUtil.compareCardAndPerson(getPersonCardHandle(startPosition + i), tasks[i])) {
+                    return false;
+                }
+            } catch (IllegalValueException ive) {
+                throw new IllegalArgumentException("Cannot initialise Task");
             }
         }
         return true;
     }
 
     /**
-     * Returns true if the list is showing the person details correctly and in correct order.
-     * @param persons A list of person in the correct order.
+     * Returns true if the list is showing the task details correctly and in correct order.
+     * @param tasks A list of tasks in the correct order.
      */
-    public boolean isListMatching(ReadOnlyTask... persons) {
-        return this.isListMatching(0, persons);
+    public boolean isListMatching(ReadOnlyTask... tasks) {
+        return this.isListMatching(0, tasks);
     }
 
     /**

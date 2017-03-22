@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import seedu.geekeep.model.util.IndexKeeper;
+
 public class ClearCommandTest extends AddressBookGuiTest {
 
     @Test
@@ -16,8 +18,11 @@ public class ClearCommandTest extends AddressBookGuiTest {
         //verify other commands can work after a clear command
         commandBox.runCommand(td.hoon.getAddCommand());
         assertTrue(taskListPanel.isListMatching(td.hoon));
-        commandBox.runCommand("delete 1");
+
+        commandBox.runCommand("delete " + IndexKeeper.getExistedIds().get(0));
         assertListSize(0);
+
+
 
         //verify clear command works when the list is empty
         assertClearCommandSuccess();

@@ -16,6 +16,7 @@ public class TestTask implements ReadOnlyTask {
     private DateTime startDateTime;
     private DateTime endDateTime;
     private UniqueTagList tags;
+    private int id;
 
     public TestTask() {
         tags = new UniqueTagList();
@@ -24,12 +25,13 @@ public class TestTask implements ReadOnlyTask {
     /**
      * Creates a copy of {@code personToCopy}.
      */
-    public TestTask(TestTask personToCopy) {
-        this.title = personToCopy.getTitle();
-        this.endDateTime = personToCopy.getEndDateTime();
-        this.startDateTime = personToCopy.getStartDateTime();
-        this.location = personToCopy.getLocation();
-        this.tags = personToCopy.getTags();
+    public TestTask(TestTask taskToCopy) {
+        this.title = taskToCopy.getTitle();
+        this.endDateTime = taskToCopy.getEndDateTime();
+        this.startDateTime = taskToCopy.getStartDateTime();
+        this.location = taskToCopy.getLocation();
+        this.tags = taskToCopy.getTags();
+        this.id = taskToCopy.getId();
     }
 
     public String getAddCommand() {
@@ -67,6 +69,10 @@ public class TestTask implements ReadOnlyTask {
         return title;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public void setEndDateTime(DateTime endDateTime) {
         this.endDateTime = endDateTime;
     }
@@ -94,26 +100,27 @@ public class TestTask implements ReadOnlyTask {
 
     @Override
     public boolean isFloatingTask() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isEvent() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isDeadline() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isDone() {
-        // TODO Auto-generated method stub
         return false;
+    }
+
+    @Override
+    public int getId() {
+        return id;
     }
 
 

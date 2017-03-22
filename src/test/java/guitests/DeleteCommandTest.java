@@ -3,8 +3,11 @@ package guitests;
 import static org.junit.Assert.assertTrue;
 import static seedu.geekeep.logic.commands.DeleteCommand.MESSAGE_DELETE_TASK_SUCCESS;
 
+import java.util.ArrayList;
+
 import org.junit.Test;
 
+import seedu.geekeep.model.util.IndexKeeper;
 import seedu.geekeep.testutil.TestTask;
 import seedu.geekeep.testutil.TestUtil;
 
@@ -18,8 +21,8 @@ public class DeleteCommandTest extends AddressBookGuiTest {
     private void assertDeleteSuccess(int targetIndexOneIndexed, final TestTask[] currentList) {
         TestTask personToDelete = currentList[targetIndexOneIndexed - 1]; // -1 as array uses zero indexing
         TestTask[] expectedRemainder = TestUtil.removePersonFromList(currentList, targetIndexOneIndexed);
-
-        commandBox.runCommand("delete " + targetIndexOneIndexed);
+        ArrayList<Integer> temp = IndexKeeper.getExistedIds();
+        commandBox.runCommand("delete " + personToDelete.getId());
 
         //confirm the list now contains all previous persons except the deleted person
         assertTrue(taskListPanel.isListMatching(expectedRemainder));

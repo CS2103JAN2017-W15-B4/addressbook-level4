@@ -1,9 +1,9 @@
 package seedu.geekeep.logic.commands;
 
 import seedu.geekeep.commons.core.Messages;
-import seedu.geekeep.commons.core.UnmodifiableObservableList;
 import seedu.geekeep.logic.commands.exceptions.CommandException;
 import seedu.geekeep.model.task.ReadOnlyTask;
+import seedu.geekeep.model.task.UniqueTaskList.TaskNotFoundException;
 
 /**
  * Marks 'done' for task identified using it's last displayed index from the address book.
@@ -28,15 +28,14 @@ public class DoneCommand extends Command {
     @Override
     public CommandResult execute() throws CommandException {
 
-        UnmodifiableObservableList<ReadOnlyTask> lastShownList = model.getFilteredTaskList();
-
-        if (lastShownList.size() < targetIndex) {
+        ReadOnlyTask taskToMark;
+        try {
+            taskToMark = model.getTaskById(targetIndex);
+        } catch (TaskNotFoundException e) {
             throw new CommandException(Messages.MESSAGE_INVALID_TASK_DISPLAYED_INDEX);
         }
 
-        ReadOnlyTask taskToMark = lastShownList.get(targetIndex - 1);
-
-        model.markTaskDone(targetIndex - 1);
+        model.markTaskDone(targetIndex);
 
         return new CommandResult(String.format(MESSAGE_DONE_TASK_SUCCESS, taskToMark));
     }

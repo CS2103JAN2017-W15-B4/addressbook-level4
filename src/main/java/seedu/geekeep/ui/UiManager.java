@@ -13,8 +13,8 @@ import seedu.geekeep.MainApp;
 import seedu.geekeep.commons.core.ComponentManager;
 import seedu.geekeep.commons.core.Config;
 import seedu.geekeep.commons.core.LogsCenter;
+import seedu.geekeep.commons.events.model.SwitchTaskCategoryEvent;
 import seedu.geekeep.commons.events.storage.DataSavingExceptionEvent;
-import seedu.geekeep.commons.events.ui.JumpToListRequestEvent;
 import seedu.geekeep.commons.events.ui.PersonPanelSelectionChangedEvent;
 import seedu.geekeep.commons.events.ui.ShowHelpRequestEvent;
 import seedu.geekeep.commons.util.StringUtil;
@@ -64,7 +64,6 @@ public class UiManager extends ComponentManager implements Ui {
     public void stop() {
         prefs.updateLastUsedGuiSetting(mainWindow.getCurrentGuiSetting());
         mainWindow.hide();
-        mainWindow.releaseResources();
     }
 
     private void showFileOperationAlertAndWait(String description, String details, Throwable cause) {
@@ -114,15 +113,15 @@ public class UiManager extends ComponentManager implements Ui {
     }
 
     @Subscribe
-    private void handleJumpToListRequestEvent(JumpToListRequestEvent event) {
+    private void handlePersonPanelSelectionChangedEvent(PersonPanelSelectionChangedEvent event) {
         logger.info(LogsCenter.getEventHandlingLogMessage(event));
-        mainWindow.getTaskListPanel().scrollTo(event.targetIndex);
     }
 
     @Subscribe
-    private void handlePersonPanelSelectionChangedEvent(PersonPanelSelectionChangedEvent event) {
+    private void handleSwitchTaskCategoryEvent(SwitchTaskCategoryEvent event) {
         logger.info(LogsCenter.getEventHandlingLogMessage(event));
-        mainWindow.loadPersonPage(event.getNewSelection());
+        mainWindow.getFloatingTaskListPanel().switchListView(event.category);
+        mainWindow.getDeadlineListPanel().switchListView(event.category);
+        mainWindow.getEventListPanel().switchListView(event.category);
     }
-
 }

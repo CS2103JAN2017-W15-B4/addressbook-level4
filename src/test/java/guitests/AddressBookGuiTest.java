@@ -3,6 +3,7 @@ package guitests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
@@ -27,6 +28,8 @@ import seedu.geekeep.commons.core.EventsCenter;
 import seedu.geekeep.commons.events.BaseEvent;
 import seedu.geekeep.model.TaskManager;
 import seedu.geekeep.model.task.ReadOnlyTask;
+import seedu.geekeep.model.util.IndexKeeper;
+import seedu.geekeep.testutil.TestTask;
 import seedu.geekeep.testutil.TestUtil;
 import seedu.geekeep.testutil.TypicalTestPersons;
 
@@ -40,9 +43,8 @@ public abstract class AddressBookGuiTest {
     public TestName name = new TestName();
 
     TestApp testApp;
-
+    protected ArrayList<Integer> temp = IndexKeeper.getExistedIds();
     protected TypicalTestPersons td = new TypicalTestPersons();
-
     /*
      *   Handles to GUI elements present at the start up are created in advance
      *   for easy access from child classes.
@@ -73,11 +75,17 @@ public abstract class AddressBookGuiTest {
             taskListPanel = mainGui.getPersonListPanel();
             resultDisplay = mainGui.getResultDisplay();
             commandBox = mainGui.getCommandBox();
-            //browserPanel = mainGui.getBrowserPanel();
             this.stage = stage;
         });
         EventsCenter.clearSubscribers();
         testApp = (TestApp) FxToolkit.setupApplication(() -> new TestApp(this::getInitialData, getDataFileLocation()));
+        //TODO shouldn't be there
+        TestTask[] testTasks = td.getTypicalPersons();
+        if (testTasks.length == IndexKeeper.getExistedIds().size()) {
+            for (int i = 0; i < testTasks.length; i++) {
+                testTasks[i].setId(IndexKeeper.getExistedIds().get(i));
+            }
+        }
         FxToolkit.showStage();
         while (!stage.isShowing());
         mainGui.focusOnMainApp();
@@ -88,8 +96,10 @@ public abstract class AddressBookGuiTest {
      * Return null to use the data in the file specified in {@link #getDataFileLocation()}
      */
     protected TaskManager getInitialData() {
+
         TaskManager ab = new TaskManager();
         TypicalTestPersons.loadTaskManagerWithSampleData(ab);
+        IndexKeeper.resetIds();
         return ab;
     }
 

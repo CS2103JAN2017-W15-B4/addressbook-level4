@@ -25,7 +25,7 @@ public class TaskCard extends UiPart<Region> {
     private Label email;
     @FXML
     private FlowPane tags;
-
+    /*@@author YiRui*/
     public TaskCard(ReadOnlyTask person, int displayedIndex) {
         super(FXML);
         name.setText(person.getTitle().fullTitle);

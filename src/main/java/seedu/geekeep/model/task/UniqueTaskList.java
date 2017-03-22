@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.geekeep.commons.core.UnmodifiableObservableList;
 import seedu.geekeep.commons.exceptions.DuplicateDataException;
+import seedu.geekeep.commons.exceptions.IllegalValueException;
 import seedu.geekeep.commons.util.CollectionUtil;
 
 /**
@@ -95,7 +96,8 @@ public class UniqueTaskList implements Iterable<Task> {
         return taskFoundAndDeleted;
     }
 
-    public void setTasks(List<? extends ReadOnlyTask> tasks) throws DuplicateTaskException {
+    public void setTasks(List<? extends ReadOnlyTask> tasks)
+            throws DuplicateTaskException, IllegalValueException {
         final UniqueTaskList replacement = new UniqueTaskList();
         for (final ReadOnlyTask task : tasks) {
             replacement.add(new Task(task));
@@ -113,31 +115,49 @@ public class UniqueTaskList implements Iterable<Task> {
      * @throws DuplicateTaskException
      *             if updating the task's details causes the task to be equivalent to another existing task in the
      *             list.
+     * @throws TaskNotFoundException
      * @throws IndexOutOfBoundsException
      *             if {@code index} < 0 or >= the size of the list.
      */
-    public void updateTask(int index, ReadOnlyTask editedTask) throws DuplicateTaskException {
+    public void updateTask(int index, ReadOnlyTask editedTask)
+            throws DuplicateTaskException, TaskNotFoundException {
         assert editedTask != null;
 
-        Task taskToUpdate = internalList.get(index);
+        Task taskToUpdate = getTask(index);
         if (!taskToUpdate.equals(editedTask) && internalList.contains(editedTask)) {
             throw new DuplicateTaskException();
         }
 
         taskToUpdate.resetData(editedTask);
+
         // TODO: The code below is just a workaround to notify observers of the updated person.
         // The right way is to implement observable properties in the Person class.
         // Then, PersonCard should then bind its text labels to those observable properties.
-        internalList.set(index, taskToUpdate);
+        int tempIndex = internalList.indexOf(taskToUpdate);
+        internalList.set(tempIndex, taskToUpdate);
     }
 
-    public void markTaskDone(int index) {
-        Task taskToMark = internalList.get(index);
+    public Task getTask(int index) throws TaskNotFoundException {
+        Iterator<Task> ir = internalList.iterator();
+        Task task;
+
+        while (ir.hasNext()) {
+            task = ir.next();
+            if (task.getId() == index) {
+                return task;
+            }
+        }
+
+        throw new TaskNotFoundException();
+    }
+
+    public void markTaskDone(int index) throws TaskNotFoundException {
+        Task taskToMark = getTask(index);
         taskToMark.markDone();
     }
 
-    public void markTaskUndone(int index) {
-        Task taskToMark = internalList.get(index);
+    public void markTaskUndone(int index) throws TaskNotFoundException {
+        Task taskToMark = getTask(index);
         taskToMark.markUndone();
     }
 
